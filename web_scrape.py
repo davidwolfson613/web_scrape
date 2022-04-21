@@ -6,21 +6,14 @@ from tabulate import tabulate
 from docx import Document
 import time
 
-# import pandas as pd
-# import warnings
-# warnings.filterwarnings("ignore")
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# def get_hb(sys_args):
-
-#   ## THIS DOESN'T WORK BECAUSE THE FILE IS PROTECTED/RESTRICTED. NOT SURE HOW TO GET AROUND THIS ISSUE
-#   # wb = load_workbook(r'.\QF1200F - Test Stand Equipment List.xlsx')
-#   # print(type(wb))
-#   pass
-
 def get_hb():
-
+  
+  '''
+  This function obtains the HB number (identification number) of equipment of which calibration data is needed. The user inputs the HB number(s).
+  '''
+  
   hb = []
   start = input('Start Date: ')
   end = input('End Date: ')
@@ -35,6 +28,9 @@ def get_hb():
 
 def get_cal_dates(hb_lst,start,end,loc):
 
+  '''
+  This function automatically obtains all the calibration data from the internet in the form of HTML data. The HTML data is then parsed and the relevant data is stored.
+  '''
   cal_dates = []
   manufact = []
   desc = []
@@ -43,55 +39,17 @@ def get_cal_dates(hb_lst,start,end,loc):
   loc_lst = [loc]*len(hb_lst)
 
   for hb in hb_lst:
-
-    # print(hb)
+    
+    # the url containing the calibration data
     url = 'https://geets.gm.com/webapps/metex1/met_ex.exe?INPUTFORM=RUNREPORT&REPORTNAME=INVENTORY%3A+BY+EQUIPMENT+INFORMATION&PROMPT1=%25&PROMPT2=%25&PROMPT3=%25&PROMPT4=%25&PROMPT5=%25&PROMPT6=%25&PROMPT7=%25&PROMPT8=%25&PROMPT9=%25&PROMPT10={}&PROMPT11=%25&PROMPT12=%25'.format(hb)
-
+    
+    # use requests to get the HTML data
     html = requests.get(url,verify=False)
     time.sleep(3)
-    # print(html.text)
-
-    html1 = '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-    <html><head><title>MET/EX INVENTORY: BY EQUIPMENT INFORMATION</title>
-    <script>if (top != self){alert('Attention:\nThis application cannot run in a framed window.\n Attempting to reload..');top.location.replace(self.location.href);};</script>
-    <script type='text/javascript' src='/metex1/script/mx_script.js'></script>
-    <link rel='stylesheet' href='/metex1/mx_base_style.css' type='text/css' />
-    <!--[if lt IE 11]><link rel='stylesheet' href='/metex1/mx_base_style_IE.css' type='text/css' /><![endif]-->
-    <link rel="stylesheet" href="/metex1/default/mx_reportlist.css" type="text/css" />
-    </head>
-    <body bgcolor="" background="/">
-    <div id='pagecontainer'>
-    <h2>Metrology Xplorer | INVENTORY: BY EQUIPMENT INFORMATION</h2>
-    <div id='formcontainer'>
-    <table id='sqlreport' summary=''>
-    <thead>
-    <tr><th>Category</th><th>Sub Category</th><th>Equipment Number</th><th>Manufacturer</th><th>Model</th><th>Description</th><th>Serial Number</th><th>Segregate</th><th>System Role</th><th>Parent Equip#</th><th>Country of Origin</th><th>PTS Administrator</th><th>PTS Storage Location</th><th>PTS</th><th>Asset Tag#</th><th>Purchase Cost</th><th>Capitalized value</th><th>PO# / ISR#</th><th>Acquision Date</th><th>In Service Date</th><th>Owning Group Name</th><th>Status</th><th>Status Date</th><th>Trace</th><th>Last Inventory</th><th>Location record created by:</th><th>Location</th><th>Details</th><th>Loc Status</th><th>Test# Project# Workorder #</th><th>Event Date</th><th>Est. Return Date</th><th>Last Action Code</th><th>Cal-date</th><th>Due-Date</th>
-    </thead><tbody>
-    <tr><td>POWER</td><td>ANALYZER</td><td>HB002592</td><td>ANDERSON ELECTRIC</td><td>AC2600PD/XT2640-2CH  </td><td>POWER PROCESSING SYSTEM</td><td>26421908004</td><td>US_HB</td><td>NON-SYSTEM</td><td>&nbsp;</td><td>Y</td><td>Leah Mapletoft</td><td>BSL TC06</td><td>W27A</td><td>100030201823</td><td>494897</td><td>0</td><td>4300786822</td><td>11/19/2018</td><td>6/5/2020</td><td>Global Battery Systems Lab</td><td>HOLD</td><td>5/10/2021</td><td>F</td><td>5/12/2021</td><td>Veronica E Mapletoft</td><td>B2-7</td><td>PTS</td><td>HOLD</td><td>GMF3LRXIOMA</td><td>5/12/2021</td><td>&nbsp;</td><td>&nbsp;</td><td>8/12/2019</td><td>8/12/2020</td>
-    </tbody><tfoot><tr><td></td><tr></tfoot>
-    </table>
-    <p>Total number of records for this report: 1</p>
-    </div>
-    <div class='footer'>
-    <p><a href='/webapps/metex1/met_ex.exe'>Home</a></p>
-    <p>
-      Monday, December 6, 2021 15:15:03 |
-      User: METEX |
-      Serial#:   Expiration Date:  |
-      CGI Version: 1.3017.1025
-    </p>
-    </div>
-    </div>
-    </body></html>'''
-
-    # df = pd.read_html(html.text)
-    # print(df[0]['Due-Date'][0])
-
+  
+    # use BeautifulSoup to parse HTML for relevant data
     soup = BeautifulSoup(html.text, 'html.parser')
-    # print(soup.prettify())
     table = soup.find(id='sqlreport')
-    # print(table)
-    # exit()
 
     try:
       rows = table.find_all('tr')
@@ -101,7 +59,7 @@ def get_cal_dates(hb_lst,start,end,loc):
 
     print(f'Processing {hb}')
     for row in rows:
-        #print(row)
+        
         columns_h = row.find_all('th')
         columns_d = row.find_all('td')
 
@@ -119,24 +77,33 @@ def get_cal_dates(hb_lst,start,end,loc):
             cal_dates.append(cal_date)
             manufact.append(str(columns_d[idx1]).split('<td>')[1].split('</td>')[0])
             desc.append(str(columns_d[idx2]).split('<td>')[1].split('</td>')[0])
-
+  
+  # create dictionary containing calibration data
   data_dict = {'Equipment Number':hb_lst,'Location':loc_lst,'Manufacturer':manufact,'Description':desc,
                   'Cal Date':cal_dates,'Start Date':start_lst,'End Date':end_lst}
   return data_dict
 
 def make_table(data_dict):
 
-  # print(tabulate(data_dict,headers='keys'))
+  '''
+  This function creates a table in Microsoft Word from the calibration data dictionary
+  '''
+  
+  # create the Word doc
   doc = Document()
+  
+  # add a table for the calibration data
   table = doc.add_table(rows=len(data_dict['Equipment Number'])+1,cols=len(data_dict))
-
+  
+  # fill table with data
   for i,name in enumerate(data_dict.keys()):
     for j in range(len(table.rows)):
-
       if j==0:
         table.cell(j,i).text = name
       else:
         table.cell(j,i).text = data_dict[name][j-1] if data_dict[name][j-1] != '' else 'N/A'
+  
+  # style the table and save it
   table.style = 'Table Grid'
   doc.save('Equipment table.docx')
 
