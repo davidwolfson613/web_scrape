@@ -8,4 +8,6 @@ To run this script locally, you can simply download the web_scrape.py file and r
 
     python web_scrape.py
 
+In order to install all the required packages, run the following command from the command line:
 
+    pip install -r requirements.txt
