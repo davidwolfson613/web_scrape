@@ -1,0 +1,4 @@
+urllib3
+bs4
+tabulate
+docx
